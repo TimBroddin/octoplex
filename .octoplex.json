@@ -1,6 +1,6 @@
 {
   "commands": {
-    "Echo": "echo 'Hello from muxi!'",
+    "Echo": "echo 'Hello from octoplex!'",
     "Counter": "bash -c 'i=0; while true; do echo \"[$i] $(date)\"; i=$((i+1)); sleep 1; done'",
     "Shell": {
       "cmd": "bash",
