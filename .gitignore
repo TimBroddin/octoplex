@@ -35,3 +35,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Editor configs
 .cursor
+.claude
+
+# Swap files
+*.swp
+*.swo
+*.swn
