@@ -1,7 +1,7 @@
 {
   "commands": {
-    "Counter": "bash -c 'i=0; while true; do echo \"Line $i\"; i=$((i+1)); sleep 0.5; done'",
-    "Date": "bash -c 'while true; do date; sleep 1; done'",
+    "Echo": "echo 'Hello from muxi!'",
+    "Counter": "bash -c 'i=0; while true; do echo \"[$i] $(date)\"; i=$((i+1)); sleep 1; done'",
     "Manual": {
       "cmd": "echo 'Started manually!'",
       "autostart": false
