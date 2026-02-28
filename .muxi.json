@@ -1,0 +1,10 @@
+{
+  "commands": {
+    "Echo": "echo 'Hello from muxi!'",
+    "Date": "date",
+    "Sleep": {
+      "cmd": "sleep 999",
+      "autostart": false
+    }
+  }
+}
