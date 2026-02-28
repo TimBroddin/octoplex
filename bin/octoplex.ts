@@ -40,24 +40,24 @@ function scriptDisplayName(name: string): string {
 
 async function showHelp() {
   const version = await getVersion();
-  console.log(`muxi v${version} — terminal multiplexer
+  console.log(`octoplex v${version} — terminal multiplexer
 
 Usage:
-  muxi              Start with config from current directory
-  muxi init         Generate a .muxi.json config file
-  muxi --help       Show this help message
-  muxi --version    Show version`);
+  octoplex              Start with config from current directory
+  octoplex init         Generate a .octoplex.json config file
+  octoplex --help       Show this help message
+  octoplex --version    Show version`);
 }
 
 // ── init ────────────────────────────────────────────────────────────
 
 async function initConfig() {
   const cwd = process.cwd();
-  const configPath = join(cwd, ".muxi.json");
+  const configPath = join(cwd, ".octoplex.json");
 
   // Check if config already exists
   if (await Bun.file(configPath).exists()) {
-    console.warn("muxi: .muxi.json already exists in this directory.");
+    console.warn("octoplex: .octoplex.json already exists in this directory.");
     process.exit(1);
   }
 
@@ -87,7 +87,7 @@ async function initConfig() {
 
     // If no scripts were found, add an example
     if (Object.keys(commands).length === 0) {
-      commands["Example"] = "echo 'Hello from muxi!'";
+      commands["Example"] = "echo 'Hello from octoplex!'";
     }
 
     config = { commands };
@@ -95,13 +95,13 @@ async function initConfig() {
     // No package.json — generate a minimal template
     config = {
       commands: {
-        Example: "echo 'Hello from muxi!'",
+        Example: "echo 'Hello from octoplex!'",
       },
     };
   }
 
   await Bun.write(configPath, JSON.stringify(config, null, 2) + "\n");
-  console.log(`muxi: created .muxi.json with ${Object.keys(config.commands as Record<string, unknown>).length} command(s).`);
+  console.log(`octoplex: created .octoplex.json with ${Object.keys(config.commands as Record<string, unknown>).length} command(s).`);
 }
 
 // ── Main ────────────────────────────────────────────────────────────
@@ -110,7 +110,7 @@ if (command === "--help" || command === "-h") {
   await showHelp();
 } else if (command === "--version" || command === "-v") {
   const version = await getVersion();
-  console.log(`muxi v${version}`);
+  console.log(`octoplex v${version}`);
 } else if (command === "init") {
   await initConfig();
 } else if (!command) {
@@ -120,11 +120,11 @@ if (command === "--help" || command === "-h") {
     const config = await loadConfig(cwd);
     render(React.createElement(App, { config }));
   } catch (err: any) {
-    console.error(`muxi: ${err.message}`);
+    console.error(`octoplex: ${err.message}`);
     process.exit(1);
   }
 } else {
-  console.error(`muxi: unknown command "${command}"`);
-  console.error('Run "muxi --help" for usage.');
+  console.error(`octoplex: unknown command "${command}"`);
+  console.error('Run "octoplex --help" for usage.');
   process.exit(1);
 }

@@ -8,7 +8,7 @@ export interface CommandConfig {
   type?: "default" | "log";
 }
 
-export interface MuxiConfig {
+export interface OctoplexConfig {
   commands: Record<string, CommandConfig | string>;
 }
 
@@ -21,6 +21,6 @@ export interface TabState {
   following: boolean;
 }
 
-export function defineConfig(config: MuxiConfig): MuxiConfig {
+export function defineConfig(config: OctoplexConfig): OctoplexConfig {
   return config;
 }

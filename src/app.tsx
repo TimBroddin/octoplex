@@ -54,7 +54,7 @@ const LOGO_FRAMES = [
     " ╭─╮╭─╮╭─╮╭─╮╭─╮  │ │",
     " │ ╰╯ ╰╯ ╰╯ ╰╯ │  │ │",
     " │               │  │ │",
-    " │  m u x i      │  │ │",
+    " │  octoplex      │  │ │",
     " │               ╰──╯ │",
     " ╰────────────────────╯",
   ],
@@ -63,7 +63,7 @@ const LOGO_FRAMES = [
     " ╭─╮╭─╮╭─╮╭─╮╭─╮ │  │",
     " │ ╰╯ ╰╯ ╰╯ ╰╯ │ │  │",
     " │               │ │  │",
-    " │  m u x i      │ │  │",
+    " │  octoplex      │ │  │",
     " │               ╰─╯  │",
     " ╰────────────────────╯",
   ],
@@ -72,7 +72,7 @@ const LOGO_FRAMES = [
     " ╭─╮╭─╮╭─╮╭─╮╭──╯   │",
     " │ ╰╯ ╰╯ ╰╯ ╰╯      │",
     " │                    │",
-    " │  m u x i           │",
+    " │  octoplex           │",
     " │               ╭────╯",
     " ╰───────────────╯     ",
   ],
@@ -81,7 +81,7 @@ const LOGO_FRAMES = [
     " ╭─╮╭─╮╭─╮╭─╮╭─╮ │  │",
     " │ ╰╯ ╰╯ ╰╯ ╰╯ │ │  │",
     " │               │ │  │",
-    " │  m u x i      │ │  │",
+    " │  octoplex      │ │  │",
     " │               ╰─╯  │",
     " ╰────────────────────╯",
   ],
@@ -420,7 +420,7 @@ function AppContent({ config }: AppProps) {
             );
           })}
           <Box flexGrow={1} justifyContent="flex-end">
-            <Text color={isAboutTab ? "cyan" : statusColor}>{isAboutTab ? "muxi" : tab?.status ?? "unknown"}</Text>
+            <Text color={isAboutTab ? "cyan" : statusColor}>{isAboutTab ? "octoplex" : tab?.status ?? "unknown"}</Text>
             {interactive && <Text color="magenta"> [INTERACTIVE]</Text>}
             {!interactive && following && <Text color="green"> [FOLLOWING]</Text>}
             {!interactive && paused && <Text color="yellow"> [PAUSED]</Text>}

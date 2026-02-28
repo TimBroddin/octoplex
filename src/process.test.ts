@@ -10,7 +10,7 @@ afterEach(() => {
 
 test("ProcessManager: spawns a process and captures output", async () => {
   pm = new ProcessManager({
-    cmd: 'echo "hello muxi"',
+    cmd: 'echo "hello octoplex"',
     cols: 80,
     rows: 24,
   });
@@ -22,7 +22,7 @@ test("ProcessManager: spawns a process and captures output", async () => {
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   const output = pm.getOutput();
-  expect(output.some((line) => line.includes("hello muxi"))).toBe(true);
+  expect(output.some((line) => line.includes("hello octoplex"))).toBe(true);
 });
 
 test("ProcessManager: starts in idle state", () => {

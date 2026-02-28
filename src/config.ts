@@ -1,5 +1,5 @@
 import { join } from "path";
-import type { CommandConfig, MuxiConfig } from "./types";
+import type { CommandConfig, OctoplexConfig } from "./types";
 
 export interface NormalizedConfig {
   commands: Record<string, CommandConfig>;
@@ -19,10 +19,10 @@ export function normalizeCommand(input: CommandConfig | string): CommandConfig {
 }
 
 export async function loadConfig(dir: string): Promise<NormalizedConfig> {
-  const jsonPath = join(dir, ".muxi.json");
-  const tsPath = join(dir, ".muxi.ts");
+  const jsonPath = join(dir, ".octoplex.json");
+  const tsPath = join(dir, ".octoplex.ts");
 
-  let raw: MuxiConfig | null = null;
+  let raw: OctoplexConfig | null = null;
 
   const jsonFile = Bun.file(jsonPath);
   if (await jsonFile.exists()) {
@@ -36,7 +36,7 @@ export async function loadConfig(dir: string): Promise<NormalizedConfig> {
   }
 
   if (!raw) {
-    throw new Error("No .muxi.json or .muxi.ts found in " + dir);
+    throw new Error("No .octoplex.json or .octoplex.ts found in " + dir);
   }
 
   const commands: Record<string, CommandConfig> = {};

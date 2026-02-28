@@ -7,7 +7,7 @@ import { tmpdir } from "os";
 let testDir: string;
 
 beforeEach(async () => {
-  testDir = await mkdtemp(join(tmpdir(), "muxi-test-"));
+  testDir = await mkdtemp(join(tmpdir(), "octoplex-test-"));
 });
 
 afterEach(async () => {
@@ -32,9 +32,9 @@ test("normalizeCommand: object with defaults", () => {
   });
 });
 
-test("loadConfig: reads .muxi.json", async () => {
+test("loadConfig: reads .octoplex.json", async () => {
   await Bun.write(
-    join(testDir, ".muxi.json"),
+    join(testDir, ".octoplex.json"),
     JSON.stringify({
       commands: {
         "Dev": "bun run dev",
@@ -49,9 +49,9 @@ test("loadConfig: reads .muxi.json", async () => {
   expect(config.commands["Test"].autostart).toBe(false);
 });
 
-test("loadConfig: reads .muxi.ts", async () => {
+test("loadConfig: reads .octoplex.ts", async () => {
   await Bun.write(
-    join(testDir, ".muxi.ts"),
+    join(testDir, ".octoplex.ts"),
     `export default { commands: { "Server": "bun run start" } };`
   );
   const config = await loadConfig(testDir);
@@ -59,5 +59,5 @@ test("loadConfig: reads .muxi.ts", async () => {
 });
 
 test("loadConfig: throws when no config found", async () => {
-  expect(loadConfig(testDir)).rejects.toThrow("No .muxi.json or .muxi.ts found");
+  expect(loadConfig(testDir)).rejects.toThrow("No .octoplex.json or .octoplex.ts found");
 });

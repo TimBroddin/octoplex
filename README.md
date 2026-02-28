@@ -1,8 +1,8 @@
-# muxi
+# octoplex
 
 A terminal multiplexer TUI for running multiple commands side by side in tabs. Built with [Bun](https://bun.sh) and [Ink](https://github.com/vadimdemedes/ink).
 
-![muxi screenshot](screenshot.png)
+![octoplex screenshot](screenshot.png)
 
 Draws inspiration from [Solo](https://github.com/soloterm/solo) for Laravel, but framework-agnostic — works with any project.
 
@@ -10,15 +10,15 @@ Draws inspiration from [Solo](https://github.com/soloterm/solo) for Laravel, but
 
 ```bash
 # Global
-bun add -g muxi
+bun add -g octoplex
 
 # Or run directly
-bunx muxi
+bunx octoplex
 ```
 
 ## Quick Start
 
-Create a `.muxi.json` in your project root:
+Create a `.octoplex.json` in your project root:
 
 ```json
 {
@@ -36,18 +36,18 @@ Create a `.muxi.json` in your project root:
 Then run:
 
 ```bash
-muxi
+octoplex
 ```
 
 Or generate a config from your `package.json` scripts:
 
 ```bash
-muxi init
+octoplex init
 ```
 
 ## Config
 
-### `.muxi.json`
+### `.octoplex.json`
 
 ```json
 {
@@ -64,12 +64,12 @@ muxi init
 }
 ```
 
-### `.muxi.ts`
+### `.octoplex.ts`
 
 For dynamic configuration:
 
 ```ts
-import { defineConfig } from "muxi";
+import { defineConfig } from "octoplex";
 
 export default defineConfig({
   commands: {
@@ -102,7 +102,7 @@ export default defineConfig({
 | `r` | Restart process |
 | `c` | Clear output |
 | `p` | Pause/unpause (freeze view) |
-| `f` | Follow (jump to latest) |
+| `f` | Follow/unfollow output |
 | `↑` `↓` | Scroll output |
 | `i` | Enter interactive mode |
 | `Ctrl+X` | Exit interactive mode |

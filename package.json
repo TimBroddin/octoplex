@@ -1,5 +1,5 @@
 {
-  "name": "muxi",
+  "name": "octoplex",
   "version": "0.1.0",
   "description": "A terminal multiplexer TUI for running multiple commands side by side in tabs",
   "type": "module",
@@ -7,12 +7,12 @@
   "author": "Tim Broddin <tim@titansofindustry.be> (https://titansofindustry.be)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/timbroddin/muxi.git"
+    "url": "git+https://github.com/timbroddin/octoplex.git"
   },
-  "homepage": "https://github.com/timbroddin/muxi#readme",
+  "homepage": "https://github.com/timbroddin/octoplex#readme",
   "keywords": ["terminal", "multiplexer", "tui", "tabs", "bun", "ink", "cli"],
   "bin": {
-    "muxi": "./bin/muxi.ts"
+    "octoplex": "./bin/octoplex.ts"
   },
   "files": ["bin", "src"],
   "dependencies": {
