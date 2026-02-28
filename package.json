@@ -7,6 +7,7 @@
   },
   "files": ["bin", "src"],
   "dependencies": {
+    "@ink-tools/ink-mouse": "^2.1.0",
     "ink": "^6.8.0",
     "ink-tab": "^5.2.0",
     "react": "^19.2.4"

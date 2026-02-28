@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Box, Text, useInput, useApp, useStdout } from "ink";
+import React, { useEffect, useRef, useState } from "react";
+import { Box, Text, useInput, useApp, useStdout, type DOMElement } from "ink";
+import { MouseProvider, useOnClick } from "@ink-tools/ink-mouse";
 import type { NormalizedConfig } from "./config.js";
 import { useProcesses } from "./hooks/useProcesses.js";
 import { LogTailPane } from "./components/LogTailPane.js";
@@ -19,6 +20,50 @@ function FullScreen({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+interface TabButtonProps {
+  name: string;
+  index: number;
+  isActive: boolean;
+  dotColor: string;
+  onClick: () => void;
+}
+
+function TabButton({ name, index, isActive, dotColor, onClick }: TabButtonProps) {
+  const ref = useRef<DOMElement>(null);
+  useOnClick(ref, onClick);
+
+  return (
+    <Box ref={ref} marginRight={1}>
+      <Text
+        bold={isActive}
+        color={isActive ? "cyan" : "gray"}
+        inverse={isActive}
+      >
+        {" "}
+        <Text color={dotColor}>●</Text> {index + 1}:{name}{" "}
+      </Text>
+    </Box>
+  );
+}
+
+const ABOUT_TAB = "__about__";
+
+function AboutPane({ width, height }: { width: number; height: number }) {
+  return (
+    <Box flexDirection="column" height={height} alignItems="center" justifyContent="center">
+      <Text bold color="cyan">muxi</Text>
+      <Text dimColor>v0.1.0</Text>
+      <Text> </Text>
+      <Text>A terminal multiplexer TUI</Text>
+      <Text> </Text>
+      <Text>Created by <Text bold>Tim Broddin</Text></Text>
+      <Text color="blue">titansofindustry.be</Text>
+      <Text> </Text>
+      <Text dimColor>Press ← or → to switch tabs</Text>
+    </Box>
+  );
+}
+
 interface AppProps {
   config: NormalizedConfig;
 }
@@ -29,10 +74,12 @@ export function App({ config }: AppProps) {
   const width = stdout?.columns ?? 80;
   const height = stdout?.rows ?? 24;
 
-  const tabNames = Object.keys(config.commands);
-  const [activeTab, setActiveTab] = useState(0);
-  const [scrollOffset, setScrollOffset] = useState(0);
+  const commandNames = Object.keys(config.commands);
+  const allTabs = [ABOUT_TAB, ...commandNames];
+  const [activeTab, setActiveTab] = useState(1); // start on first command, not About
+  const [scrollOffset, setScrollOffset] = useState(0); // lines scrolled up from the "anchor"
   const [following, setFollowing] = useState(true);
+  const [pausedAtLine, setPausedAtLine] = useState(0); // total line count when paused
   const [interactive, setInteractive] = useState(false);
   const [wrapLines, setWrapLines] = useState(true);
 
@@ -50,14 +97,16 @@ export function App({ config }: AppProps) {
   // Total height - tab bar (1) - border top/bottom (2) - hotkey bar (1) = height - 4
   const outputHeight = height - 4;
 
-  const activeTabName = tabNames[activeTab];
-  const tab = getTab(activeTabName);
+  const activeTabName = allTabs[activeTab];
+  const isAboutTab = activeTabName === ABOUT_TAB;
+  const tab = isAboutTab ? null : getTab(activeTabName);
 
   // Reset scroll, following, and interactive mode when switching tabs
   useEffect(() => {
     setScrollOffset(0);
     setFollowing(true);
     setInteractive(false);
+    setPausedAtLine(0);
   }, [activeTab]);
 
   useInput((input, key) => {
@@ -103,8 +152,8 @@ export function App({ config }: AppProps) {
       return;
     }
 
-    // Enter interactive mode
-    if (input === "i") {
+    // Enter interactive mode (only on process tabs)
+    if (input === "i" && !isAboutTab) {
       if (tab && (tab.status === "running" || tab.status === "starting")) {
         setInteractive(true);
         setFollowing(true);
@@ -115,20 +164,24 @@ export function App({ config }: AppProps) {
 
     // Tab switching with arrow keys
     if (key.leftArrow) {
-      setActiveTab((i) => (i > 0 ? i - 1 : tabNames.length - 1));
+      setActiveTab((i) => (i > 0 ? i - 1 : allTabs.length - 1));
     }
     if (key.rightArrow) {
-      setActiveTab((i) => (i < tabNames.length - 1 ? i + 1 : 0));
+      setActiveTab((i) => (i < allTabs.length - 1 ? i + 1 : 0));
     }
 
     // Tab switching with number keys
     const num = parseInt(input, 10);
-    if (num >= 1 && num <= tabNames.length) {
+    if (num >= 1 && num <= allTabs.length) {
       setActiveTab(num - 1);
     }
 
     // Scroll up
     if (key.upArrow) {
+      if (following && tab) {
+        // Snapshot line count when leaving follow mode via scroll
+        setPausedAtLine(tab.output.length);
+      }
       setFollowing(false);
       setScrollOffset((prev) => prev + 1);
     }
@@ -137,7 +190,10 @@ export function App({ config }: AppProps) {
     if (key.downArrow) {
       setScrollOffset((prev) => {
         const next = Math.max(0, prev - 1);
-        if (next === 0) setFollowing(true);
+        if (next === 0) {
+          setFollowing(true);
+          setPausedAtLine(0);
+        }
         return next;
       });
     }
@@ -163,17 +219,24 @@ export function App({ config }: AppProps) {
       clearOutput(activeTabName);
       setScrollOffset(0);
       setFollowing(true);
+      setPausedAtLine(0);
     }
 
-    // Pause following
-    if (input === "p") {
-      setFollowing(false);
-    }
-
-    // Follow / resume auto-scroll
+    // Toggle follow/unfollow
     if (input === "f") {
-      setFollowing(true);
-      setScrollOffset(0);
+      if (following) {
+        // Pause — freeze view at current position
+        if (tab) {
+          setPausedAtLine(tab.output.length);
+          setScrollOffset(0);
+        }
+        setFollowing(false);
+      } else {
+        // Resume — jump to latest output
+        setFollowing(true);
+        setScrollOffset(0);
+        setPausedAtLine(0);
+      }
     }
 
     // Log-mode hotkeys
@@ -200,16 +263,18 @@ export function App({ config }: AppProps) {
     const totalLines = allLines.length;
 
     if (following) {
-      // Show the last outputHeight lines
+      // Show the last outputHeight lines (auto-scroll to bottom)
       const start = Math.max(0, totalLines - outputHeight);
       visibleLines = allLines.slice(start, start + outputHeight);
     } else {
-      // scrollOffset counts lines from the bottom
-      const end = Math.max(0, totalLines - scrollOffset);
+      // When paused, anchor to the line count at the moment of pause
+      // so new output doesn't push the view down
+      const anchor = pausedAtLine > 0 ? Math.min(pausedAtLine, totalLines) : totalLines;
+      const end = Math.max(0, anchor - scrollOffset);
       const start = Math.max(0, end - outputHeight);
       visibleLines = allLines.slice(start, end);
       // Clamp scrollOffset so we don't scroll past the top
-      const maxOffset = Math.max(0, totalLines - outputHeight);
+      const maxOffset = Math.max(0, anchor - outputHeight);
       if (scrollOffset > maxOffset) {
         setScrollOffset(maxOffset);
       }
@@ -226,19 +291,31 @@ export function App({ config }: AppProps) {
           ? "yellow"
           : "gray";
 
-  const isLogTab = config.commands[activeTabName]?.type === "log";
+  const isLogTab = !isAboutTab && config.commands[activeTabName]?.type === "log";
 
   const showStartPrompt =
     tab && (tab.status === "idle" || tab.status === "stopped") && tab.output.length === 0;
 
   return (
+    <MouseProvider>
     <FullScreen>
       <Box flexDirection="column" height={height} width={width}>
         {/* Tab Bar */}
         <Box>
-          {tabNames.map((name, i) => {
+          {allTabs.map((name, i) => {
+            if (name === ABOUT_TAB) {
+              return (
+                <TabButton
+                  key="about"
+                  name="About"
+                  index={i}
+                  isActive={i === activeTab}
+                  dotColor="cyan"
+                  onClick={() => setActiveTab(i)}
+                />
+              );
+            }
             const t = getTab(name);
-            const isActive = i === activeTab;
             const dotColor =
               t?.status === "running"
                 ? "green"
@@ -246,20 +323,18 @@ export function App({ config }: AppProps) {
                   ? "red"
                   : "gray";
             return (
-              <Box key={name} marginRight={1}>
-                <Text
-                  bold={isActive}
-                  color={isActive ? "cyan" : "gray"}
-                  inverse={isActive}
-                >
-                  {" "}
-                  <Text color={dotColor}>●</Text> {i + 1}:{name}{" "}
-                </Text>
-              </Box>
+              <TabButton
+                key={name}
+                name={name}
+                index={i}
+                isActive={i === activeTab}
+                dotColor={dotColor}
+                onClick={() => setActiveTab(i)}
+              />
             );
           })}
           <Box flexGrow={1} justifyContent="flex-end">
-            <Text color={statusColor}>{tab?.status ?? "unknown"}</Text>
+            <Text color={isAboutTab ? "cyan" : statusColor}>{isAboutTab ? "muxi" : tab?.status ?? "unknown"}</Text>
             {interactive && <Text color="magenta"> [INTERACTIVE]</Text>}
             {!following && !interactive && <Text color="yellow"> [PAUSED]</Text>}
           </Box>
@@ -273,7 +348,9 @@ export function App({ config }: AppProps) {
           borderStyle="single"
           borderColor="gray"
         >
-          {showStartPrompt ? (
+          {isAboutTab ? (
+            <AboutPane width={width - 2} height={outputHeight} />
+          ) : showStartPrompt ? (
             <Box flexGrow={1} alignItems="center" justifyContent="center">
               <Text color="gray">
                 Press <Text color="yellow">[s]</Text> to start
@@ -315,10 +392,8 @@ export function App({ config }: AppProps) {
               <Text>lear </Text>
               <Text color="yellow">[i]</Text>
               <Text>nteractive </Text>
-              <Text color="yellow">[p]</Text>
-              <Text>ause </Text>
               <Text color="yellow">[f]</Text>
-              <Text>ollow </Text>
+              <Text>{following ? "reeze " : "ollow "}</Text>
               {isLogTab && (
                 <>
                   <Text color="yellow">[w]</Text>
@@ -338,5 +413,6 @@ export function App({ config }: AppProps) {
         </Box>
       </Box>
     </FullScreen>
+    </MouseProvider>
   );
 }
