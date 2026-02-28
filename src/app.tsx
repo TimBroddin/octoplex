@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Text, useInput, useApp, useStdout, type DOMElement } from "ink";
-import { MouseProvider, useOnClick } from "@ink-tools/ink-mouse";
+import { MouseProvider, useOnClick, useMouse } from "@ink-tools/ink-mouse";
 import type { NormalizedConfig } from "./config.js";
 import { useProcesses } from "./hooks/useProcesses.js";
 import { LogTailPane } from "./components/LogTailPane.js";
@@ -122,8 +122,17 @@ interface AppProps {
 }
 
 export function App({ config }: AppProps) {
+  return (
+    <MouseProvider>
+      <AppContent config={config} />
+    </MouseProvider>
+  );
+}
+
+function AppContent({ config }: AppProps) {
   const { exit } = useApp();
   const { stdout } = useStdout();
+  const mouse = useMouse();
   const width = stdout?.columns ?? 80;
   const height = stdout?.rows ?? 24;
 
@@ -134,6 +143,7 @@ export function App({ config }: AppProps) {
   const [following, setFollowing] = useState(true);
   const [pausedAtLine, setPausedAtLine] = useState(0); // total line count when paused
   const [interactive, setInteractive] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [wrapLines, setWrapLines] = useState(true);
 
   const {
@@ -145,6 +155,16 @@ export function App({ config }: AppProps) {
     writeToProcess,
     killAll,
   } = useProcesses(config);
+
+  // Disable mouse tracking in interactive mode so escape sequences
+  // don't get forwarded to the PTY process
+  useEffect(() => {
+    if (interactive) {
+      mouse.disable();
+    } else {
+      mouse.enable();
+    }
+  }, [interactive]);
 
   // Height available for output lines inside the bordered box
   // Total height - tab bar (1) - border top/bottom (2) - hotkey bar (1) = height - 4
@@ -160,6 +180,7 @@ export function App({ config }: AppProps) {
     setFollowing(true);
     setInteractive(false);
     setPausedAtLine(0);
+    setPaused(false);
   }, [activeTab]);
 
   useInput((input, key) => {
@@ -277,25 +298,31 @@ export function App({ config }: AppProps) {
 
     // Pause — freeze view at current position (toggle)
     if (input === "p") {
-      if (following) {
+      if (!paused) {
         if (tab) {
           setPausedAtLine(tab.output.length);
           setScrollOffset(0);
         }
         setFollowing(false);
+        setPaused(true);
       } else {
-        // Unpause — resume following
         setFollowing(true);
         setScrollOffset(0);
         setPausedAtLine(0);
+        setPaused(false);
       }
     }
 
-    // Follow — jump to latest output (always)
+    // Follow toggle
     if (input === "f") {
-      setFollowing(true);
-      setScrollOffset(0);
-      setPausedAtLine(0);
+      if (following) {
+        setFollowing(false);
+      } else {
+        setFollowing(true);
+        setScrollOffset(0);
+        setPausedAtLine(0);
+        setPaused(false);
+      }
     }
 
     // Log-mode hotkeys
@@ -356,7 +383,6 @@ export function App({ config }: AppProps) {
     tab && (tab.status === "idle" || tab.status === "stopped") && tab.output.length === 0;
 
   return (
-    <MouseProvider>
     <FullScreen>
       <Box flexDirection="column" height={height} width={width}>
         {/* Tab Bar */}
@@ -395,7 +421,8 @@ export function App({ config }: AppProps) {
           <Box flexGrow={1} justifyContent="flex-end">
             <Text color={isAboutTab ? "cyan" : statusColor}>{isAboutTab ? "muxi" : tab?.status ?? "unknown"}</Text>
             {interactive && <Text color="magenta"> [INTERACTIVE]</Text>}
-            {!following && !interactive && <Text color="yellow"> [PAUSED]</Text>}
+            {!interactive && following && <Text color="green"> [FOLLOWING]</Text>}
+            {!interactive && paused && <Text color="yellow"> [PAUSED]</Text>}
           </Box>
         </Box>
 
@@ -453,8 +480,11 @@ export function App({ config }: AppProps) {
               <Text>nteractive </Text>
               <Text color="yellow">[p]</Text>
               <Text>ause </Text>
-              <Text color="yellow">[f]</Text>
-              <Text>ollow </Text>
+              {following ? (
+                <><Text>un</Text><Text color="yellow">[f]</Text><Text>ollow </Text></>
+              ) : (
+                <><Text color="yellow">[f]</Text><Text>ollow </Text></>
+              )}
               {isLogTab && (
                 <>
                   <Text color="yellow">[w]</Text>
@@ -474,6 +504,5 @@ export function App({ config }: AppProps) {
         </Box>
       </Box>
     </FullScreen>
-    </MouseProvider>
   );
 }

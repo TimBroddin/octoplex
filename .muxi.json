@@ -2,6 +2,10 @@
   "commands": {
     "Echo": "echo 'Hello from muxi!'",
     "Counter": "bash -c 'i=0; while true; do echo \"[$i] $(date)\"; i=$((i+1)); sleep 1; done'",
+    "Shell": {
+      "cmd": "bash",
+      "autostart": false
+    },
     "Manual": {
       "cmd": "echo 'Started manually!'",
       "autostart": false
