@@ -1,7 +1,16 @@
 {
   "name": "muxi",
   "version": "0.1.0",
+  "description": "A terminal multiplexer TUI for running multiple commands side by side in tabs",
   "type": "module",
+  "license": "MIT",
+  "author": "Tim Broddin <tim@titansofindustry.be> (https://titansofindustry.be)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/timbroddin/muxi.git"
+  },
+  "homepage": "https://github.com/timbroddin/muxi#readme",
+  "keywords": ["terminal", "multiplexer", "tui", "tabs", "bun", "ink", "cli"],
   "bin": {
     "muxi": "./bin/muxi.ts"
   },
