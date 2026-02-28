@@ -121,7 +121,10 @@ if (command === "--help" || command === "-h") {
   // If no config exists, run init and open in editor
   if (!(await Bun.file(configPath).exists()) && !(await Bun.file(join(cwd, ".octoplex.ts")).exists())) {
     await initConfig();
-    console.warn("octoplex: opening in editor, save & quit to start...\n");
+    process.stdout.write("octoplex: press Enter to open in editor...");
+    for await (const chunk of Bun.stdin.stream()) {
+      if (new TextDecoder().decode(chunk).includes("\n")) break;
+    }
 
     const editor = Bun.env.EDITOR || Bun.env.VISUAL || "vi";
     const proc = Bun.spawn([editor, configPath], {
