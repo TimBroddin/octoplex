@@ -11,7 +11,7 @@ Developers running multiple processes during local development (dev server, CSS 
 ## Decisions
 
 - **Framework-agnostic** with optional JS/TS project extras (package.json script detection)
-- **Ink + node-pty**: React-based TUI rendering with full PTY support for processes
+- **Ink + Bun.Terminal**: React-based TUI rendering with Bun's built-in PTY API (node-pty doesn't work with Bun)
 - **Config**: `.muxi.json` (simple) and `.muxi.ts` (advanced) both supported
 - **Distribution**: Works as global CLI (`bun add -g muxi`) or local dev dependency (`bunx muxi`)
 - **MVP features**: Tabs, autostart/lazy commands, scrollable output, interactive mode, log tailing
@@ -32,7 +32,7 @@ Developers running multiple processes during local development (dev server, CSS 
 │  └── <LogTailPane />   ← special log viewer │
 ├─────────────────────────────────────────────┤
 │  ProcessManager                             │
-│  - Spawns/kills processes via node-pty      │
+│  - Spawns/kills processes via Bun.Terminal   │
 │  - Manages lifecycle per tab                │
 │  - Buffers output with max line limit       │
 ├─────────────────────────────────────────────┤
@@ -46,7 +46,7 @@ Developers running multiple processes during local development (dev server, CSS 
 ### Key modules
 
 - **CLI entry point** (`bin/muxi.ts`) — arg parsing, config loading, Ink render
-- **ProcessManager** (`src/process.ts`) — wraps `node-pty`, manages spawn/kill/restart per command
+- **ProcessManager** (`src/process.ts`) — wraps `Bun.Terminal`, manages spawn/kill/restart per command
 - **React components** — TabBar, OutputPane, HotkeyBar, LogTailPane
 - **ConfigLoader** (`src/config.ts`) — reads `.muxi.json` / `.muxi.ts`, validates, merges defaults
 
@@ -120,7 +120,7 @@ User actions:
 
 - **autostart: true** — process spawns immediately on launch
 - **autostart: false** — tab visible but shows "Press [s] to start"
-- Processes spawned via `node-pty` in PTY mode
+- Processes spawned via `Bun.Terminal` in PTY mode
 - Output buffered per-tab (configurable max lines, default 10,000)
 - On exit: SIGTERM → wait 3s → SIGKILL to all processes
 
@@ -196,7 +196,7 @@ muxi/
 
 - **Runtime**: Bun
 - **TUI framework**: Ink (React for CLI)
-- **Process management**: node-pty (PTY-based process spawning)
+- **Process management**: Bun.Terminal (built-in PTY API, no native deps)
 - **Config**: JSON + TypeScript config files
 - **Language**: TypeScript
 
