@@ -99,7 +99,8 @@ export default defineConfig({
 | `s` | Start/stop process |
 | `r` | Restart process |
 | `c` | Clear output |
-| `f` | Toggle freeze/follow |
+| `p` | Pause/unpause (freeze view) |
+| `f` | Follow (jump to latest) |
 | `↑` `↓` | Scroll output |
 | `i` | Enter interactive mode |
 | `Ctrl+X` | Exit interactive mode |

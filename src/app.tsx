@@ -48,10 +48,63 @@ function TabButton({ name, index, isActive, dotColor, onClick }: TabButtonProps)
 
 const ABOUT_TAB = "__about__";
 
+const LOGO_FRAMES = [
+  [
+    "                    ╭─╮",
+    " ╭─╮╭─╮╭─╮╭─╮╭─╮  │ │",
+    " │ ╰╯ ╰╯ ╰╯ ╰╯ │  │ │",
+    " │               │  │ │",
+    " │  m u x i      │  │ │",
+    " │               ╰──╯ │",
+    " ╰────────────────────╯",
+  ],
+  [
+    "                   ╭──╮",
+    " ╭─╮╭─╮╭─╮╭─╮╭─╮ │  │",
+    " │ ╰╯ ╰╯ ╰╯ ╰╯ │ │  │",
+    " │               │ │  │",
+    " │  m u x i      │ │  │",
+    " │               ╰─╯  │",
+    " ╰────────────────────╯",
+  ],
+  [
+    "                  ╭───╮",
+    " ╭─╮╭─╮╭─╮╭─╮╭──╯   │",
+    " │ ╰╯ ╰╯ ╰╯ ╰╯      │",
+    " │                    │",
+    " │  m u x i           │",
+    " │               ╭────╯",
+    " ╰───────────────╯     ",
+  ],
+  [
+    "                   ╭──╮",
+    " ╭─╮╭─╮╭─╮╭─╮╭─╮ │  │",
+    " │ ╰╯ ╰╯ ╰╯ ╰╯ │ │  │",
+    " │               │ │  │",
+    " │  m u x i      │ │  │",
+    " │               ╰─╯  │",
+    " ╰────────────────────╯",
+  ],
+];
+
 function AboutPane({ width, height }: { width: number; height: number }) {
+  const [frame, setFrame] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFrame((f) => (f + 1) % LOGO_FRAMES.length);
+    }, 400);
+    return () => clearInterval(timer);
+  }, []);
+
+  const logo = LOGO_FRAMES[frame];
+
   return (
     <Box flexDirection="column" height={height} alignItems="center" justifyContent="center">
-      <Text bold color="cyan">muxi</Text>
+      {logo.map((line, i) => (
+        <Text key={i} color="cyan">{line}</Text>
+      ))}
+      <Text> </Text>
       <Text dimColor>v0.1.0</Text>
       <Text> </Text>
       <Text>A terminal multiplexer TUI</Text>
@@ -75,8 +128,8 @@ export function App({ config }: AppProps) {
   const height = stdout?.rows ?? 24;
 
   const commandNames = Object.keys(config.commands);
-  const allTabs = [ABOUT_TAB, ...commandNames];
-  const [activeTab, setActiveTab] = useState(1); // start on first command, not About
+  const allTabs = [...commandNames, ABOUT_TAB];
+  const [activeTab, setActiveTab] = useState(0); // start on first command
   const [scrollOffset, setScrollOffset] = useState(0); // lines scrolled up from the "anchor"
   const [following, setFollowing] = useState(true);
   const [pausedAtLine, setPausedAtLine] = useState(0); // total line count when paused
@@ -222,21 +275,27 @@ export function App({ config }: AppProps) {
       setPausedAtLine(0);
     }
 
-    // Toggle follow/unfollow
-    if (input === "f") {
+    // Pause — freeze view at current position (toggle)
+    if (input === "p") {
       if (following) {
-        // Pause — freeze view at current position
         if (tab) {
           setPausedAtLine(tab.output.length);
           setScrollOffset(0);
         }
         setFollowing(false);
       } else {
-        // Resume — jump to latest output
+        // Unpause — resume following
         setFollowing(true);
         setScrollOffset(0);
         setPausedAtLine(0);
       }
+    }
+
+    // Follow — jump to latest output (always)
+    if (input === "f") {
+      setFollowing(true);
+      setScrollOffset(0);
+      setPausedAtLine(0);
     }
 
     // Log-mode hotkeys
@@ -392,8 +451,10 @@ export function App({ config }: AppProps) {
               <Text>lear </Text>
               <Text color="yellow">[i]</Text>
               <Text>nteractive </Text>
+              <Text color="yellow">[p]</Text>
+              <Text>ause </Text>
               <Text color="yellow">[f]</Text>
-              <Text>{following ? "reeze " : "ollow "}</Text>
+              <Text>ollow </Text>
               {isLogTab && (
                 <>
                   <Text color="yellow">[w]</Text>
