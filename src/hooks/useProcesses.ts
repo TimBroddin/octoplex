@@ -86,6 +86,13 @@ export function useProcesses(config: NormalizedConfig) {
     managersRef.current.get(name)?.write(data);
   }, []);
 
+  // Resize all PTYs when terminal dimensions change
+  useEffect(() => {
+    for (const pm of managersRef.current.values()) {
+      pm.resize(cols, rows);
+    }
+  }, [cols, rows]);
+
   const killAll = useCallback(() => {
     for (const pm of managersRef.current.values()) {
       pm.kill();
