@@ -1,0 +1,18 @@
+{
+  "name": "muxi",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "muxi": "./bin/muxi.ts"
+  },
+  "files": ["bin", "src"],
+  "dependencies": {
+    "ink": "^6.8.0",
+    "ink-tab": "^5.2.0",
+    "react": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19.2.14"
+  }
+}
