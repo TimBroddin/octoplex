@@ -32,6 +32,7 @@ export function App({ config }: AppProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [following, setFollowing] = useState(true);
+  const [interactive, setInteractive] = useState(false);
 
   const {
     getTab,
@@ -39,6 +40,7 @@ export function App({ config }: AppProps) {
     stopProcess,
     restartProcess,
     clearOutput,
+    writeToProcess,
     killAll,
   } = useProcesses(config);
 
@@ -49,17 +51,63 @@ export function App({ config }: AppProps) {
   const activeTabName = tabNames[activeTab];
   const tab = getTab(activeTabName);
 
-  // Reset scroll and following when switching tabs
+  // Reset scroll, following, and interactive mode when switching tabs
   useEffect(() => {
     setScrollOffset(0);
     setFollowing(true);
+    setInteractive(false);
   }, [activeTab]);
 
   useInput((input, key) => {
+    // Interactive mode: forward input to the active process PTY
+    if (interactive) {
+      // Ctrl+X exits interactive mode
+      if (key.ctrl && input === "x") {
+        setInteractive(false);
+        return;
+      }
+
+      // Forward keypresses to the process
+      if (key.return) {
+        writeToProcess(activeTabName, "\r");
+      } else if (key.backspace || key.delete) {
+        writeToProcess(activeTabName, "\x7f");
+      } else if (key.upArrow) {
+        writeToProcess(activeTabName, "\x1b[A");
+      } else if (key.downArrow) {
+        writeToProcess(activeTabName, "\x1b[B");
+      } else if (key.rightArrow) {
+        writeToProcess(activeTabName, "\x1b[C");
+      } else if (key.leftArrow) {
+        writeToProcess(activeTabName, "\x1b[D");
+      } else if (key.tab) {
+        writeToProcess(activeTabName, "\t");
+      } else if (key.escape) {
+        writeToProcess(activeTabName, "\x1b");
+      } else if (input) {
+        writeToProcess(activeTabName, input);
+      }
+
+      // Suppress all normal hotkeys while in interactive mode
+      return;
+    }
+
+    // --- Normal mode ---
+
     // Quit
     if (input === "q") {
       killAll();
       exit();
+      return;
+    }
+
+    // Enter interactive mode
+    if (input === "i") {
+      if (tab && (tab.status === "running" || tab.status === "starting")) {
+        setInteractive(true);
+        setFollowing(true);
+        setScrollOffset(0);
+      }
       return;
     }
 
@@ -192,7 +240,8 @@ export function App({ config }: AppProps) {
           })}
           <Box flexGrow={1} justifyContent="flex-end">
             <Text color={statusColor}>{tab?.status ?? "unknown"}</Text>
-            {!following && <Text color="yellow"> [PAUSED]</Text>}
+            {interactive && <Text color="magenta"> [INTERACTIVE]</Text>}
+            {!following && !interactive && <Text color="yellow"> [PAUSED]</Text>}
           </Box>
         </Box>
 
@@ -221,24 +270,35 @@ export function App({ config }: AppProps) {
 
         {/* Hotkey Bar */}
         <Box>
-          <Text>
-            <Text color="yellow">[s]</Text>
-            <Text>tart/stop </Text>
-            <Text color="yellow">[r]</Text>
-            <Text>estart </Text>
-            <Text color="yellow">[c]</Text>
-            <Text>lear </Text>
-            <Text color="yellow">[p]</Text>
-            <Text>ause </Text>
-            <Text color="yellow">[f]</Text>
-            <Text>ollow </Text>
-            <Text color="yellow">[←→]</Text>
-            <Text> tabs </Text>
-            <Text color="yellow">[↑↓]</Text>
-            <Text> scroll </Text>
-            <Text color="yellow">[q]</Text>
-            <Text>uit</Text>
-          </Text>
+          {interactive ? (
+            <Text>
+              <Text color="magenta" bold>INTERACTIVE</Text>
+              <Text> — typing is sent to process | </Text>
+              <Text color="yellow">[Ctrl+X]</Text>
+              <Text> exit interactive</Text>
+            </Text>
+          ) : (
+            <Text>
+              <Text color="yellow">[s]</Text>
+              <Text>tart/stop </Text>
+              <Text color="yellow">[r]</Text>
+              <Text>estart </Text>
+              <Text color="yellow">[c]</Text>
+              <Text>lear </Text>
+              <Text color="yellow">[i]</Text>
+              <Text>nteractive </Text>
+              <Text color="yellow">[p]</Text>
+              <Text>ause </Text>
+              <Text color="yellow">[f]</Text>
+              <Text>ollow </Text>
+              <Text color="yellow">[←→]</Text>
+              <Text> tabs </Text>
+              <Text color="yellow">[↑↓]</Text>
+              <Text> scroll </Text>
+              <Text color="yellow">[q]</Text>
+              <Text>uit</Text>
+            </Text>
+          )}
         </Box>
       </Box>
     </FullScreen>
