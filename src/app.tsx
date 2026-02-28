@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Text, useInput, useApp, useStdout, type DOMElement } from "ink";
-import { MouseProvider, useOnClick, useMouse } from "@ink-tools/ink-mouse";
+import { MouseProvider, useOnClick } from "@ink-tools/ink-mouse";
 import type { NormalizedConfig } from "./config.js";
 import { useProcesses } from "./hooks/useProcesses.js";
 import { LogTailPane } from "./components/LogTailPane.js";
@@ -132,7 +132,6 @@ export function App({ config }: AppProps) {
 function AppContent({ config }: AppProps) {
   const { exit } = useApp();
   const { stdout } = useStdout();
-  const mouse = useMouse();
   const width = stdout?.columns ?? 80;
   const height = stdout?.rows ?? 24;
 
@@ -160,9 +159,11 @@ function AppContent({ config }: AppProps) {
   // don't get forwarded to the PTY process
   useEffect(() => {
     if (interactive) {
-      mouse.disable();
+      // Disable all mouse tracking modes
+      process.stdout.write("\x1b[?1000l\x1b[?1002l\x1b[?1003l\x1b[?1006l");
     } else {
-      mouse.enable();
+      // Re-enable mouse tracking
+      process.stdout.write("\x1b[?1000h\x1b[?1002h\x1b[?1003h\x1b[?1006h");
     }
   }, [interactive]);
 

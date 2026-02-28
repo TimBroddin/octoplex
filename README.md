@@ -2,6 +2,8 @@
 
 A terminal multiplexer TUI for running multiple commands side by side in tabs. Built with [Bun](https://bun.sh) and [Ink](https://github.com/vadimdemedes/ink).
 
+![muxi screenshot](screenshot.png)
+
 Draws inspiration from [Solo](https://github.com/soloterm/solo) for Laravel, but framework-agnostic — works with any project.
 
 ## Install
