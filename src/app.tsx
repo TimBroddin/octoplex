@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Text, useInput, useApp, useStdout } from "ink";
 import type { NormalizedConfig } from "./config.js";
 import { useProcesses } from "./hooks/useProcesses.js";
+import { LogTailPane } from "./components/LogTailPane.js";
 
 const ENTER_ALT_SCREEN = "\x1b[?1049h";
 const LEAVE_ALT_SCREEN = "\x1b[?1049l";
@@ -33,6 +34,7 @@ export function App({ config }: AppProps) {
   const [scrollOffset, setScrollOffset] = useState(0);
   const [following, setFollowing] = useState(true);
   const [interactive, setInteractive] = useState(false);
+  const [wrapLines, setWrapLines] = useState(true);
 
   const {
     getTab,
@@ -173,6 +175,22 @@ export function App({ config }: AppProps) {
       setFollowing(true);
       setScrollOffset(0);
     }
+
+    // Log-mode hotkeys
+    const activeConfig = config.commands[activeTabName];
+    if (activeConfig?.type === "log") {
+      // Toggle line wrapping
+      if (input === "w") {
+        setWrapLines((prev) => !prev);
+      }
+
+      // Truncate/clear log output
+      if (input === "t") {
+        clearOutput(activeTabName);
+        setScrollOffset(0);
+        setFollowing(true);
+      }
+    }
   });
 
   // Compute visible lines
@@ -207,6 +225,8 @@ export function App({ config }: AppProps) {
         : tab?.status === "starting" || tab?.status === "stopping"
           ? "yellow"
           : "gray";
+
+  const isLogTab = config.commands[activeTabName]?.type === "log";
 
   const showStartPrompt =
     tab && (tab.status === "idle" || tab.status === "stopped") && tab.output.length === 0;
@@ -259,6 +279,14 @@ export function App({ config }: AppProps) {
                 Press <Text color="yellow">[s]</Text> to start
               </Text>
             </Box>
+          ) : isLogTab ? (
+            <LogTailPane
+              lines={tab?.output ?? []}
+              height={outputHeight}
+              width={width - 2}
+              scrollOffset={following ? 0 : scrollOffset}
+              wrap={wrapLines}
+            />
           ) : (
             visibleLines.map((line, i) => (
               <Text key={i} wrap="truncate">
@@ -291,6 +319,14 @@ export function App({ config }: AppProps) {
               <Text>ause </Text>
               <Text color="yellow">[f]</Text>
               <Text>ollow </Text>
+              {isLogTab && (
+                <>
+                  <Text color="yellow">[w]</Text>
+                  <Text>rap </Text>
+                  <Text color="yellow">[t]</Text>
+                  <Text>runcate </Text>
+                </>
+              )}
               <Text color="yellow">[←→]</Text>
               <Text> tabs </Text>
               <Text color="yellow">[↑↓]</Text>
