@@ -131,6 +131,9 @@ if (command === "--help" || command === "-h") {
       stdio: ["inherit", "inherit", "inherit"],
     });
     await proc.exited;
+
+    console.log("\noctoplex: config saved! Run `octoplex` to start.");
+    process.exit(0);
   }
 
   try {
