@@ -1,6 +1,6 @@
 {
   "name": "octoplex",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A terminal multiplexer TUI for running multiple commands side by side in tabs",
   "type": "module",
   "license": "MIT",
