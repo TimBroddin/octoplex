@@ -118,15 +118,9 @@ if (command === "--help" || command === "-h") {
   const cwd = process.cwd();
   const configPath = join(cwd, ".octoplex.json");
 
-  // If no config exists, create a default one and open in editor
+  // If no config exists, run init and open in editor
   if (!(await Bun.file(configPath).exists()) && !(await Bun.file(join(cwd, ".octoplex.ts")).exists())) {
-    const defaultConfig = {
-      commands: {
-        Example: "echo 'Hello from octoplex!'",
-      },
-    };
-    await Bun.write(configPath, JSON.stringify(defaultConfig, null, 2) + "\n");
-    console.warn("octoplex: no config found — created .octoplex.json");
+    await initConfig();
     console.warn("octoplex: opening in editor, save & quit to start...\n");
 
     const editor = Bun.env.EDITOR || Bun.env.VISUAL || "vi";
